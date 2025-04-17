@@ -88,7 +88,13 @@ const orderDetails = {
   show() {
     let msg = `Order #${this.orderNum}: ${this.custName} at ${
       this.timestamp
-    }:<br /> ${JSON.stringify(this.items)}`
+    }:<br />`
+    for (let i = 0; i < this.items.length; i++){
+      msg += this.items[i]["count"] + " ";
+      msg += this.items[i]["itemname"] + " chicken sandwich";
+      msg += this.items[i]["count"] > 1 ? "es" : "";
+      if (i < this.items.length - 1) msg += ",<br />";
+    }
     currOrder.innerHTML = msg
     historyLog(msg)
   },
