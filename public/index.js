@@ -45,14 +45,14 @@ const inventory = new Inventory(
   { unit: "cup", qty: 0 }, // lettuce
   { unit: "cup", qty: 0 }, // tomato
   { unit: "ounce", qty: 0 }, // pickle
-  { unit: "slices", qty: 0 } // pepperjack
+  { unit: "slice", qty: 0 } // pepperjack
 )
 
 const resupplyLevels = {
   lettuce: 50,
-  tomato: 50,
+  tomato: 50, 
   pickle: 100,
-  pepperjack: 20,
+  pepperjack: 20, 
   patty: 50,
   bun: 75,
 }
@@ -88,9 +88,15 @@ const orderDetails = {
   show() {
     let msg = `Order #${this.orderNum}: ${this.custName} at ${
       this.timestamp
-    }:<br /> ${JSON.stringify(this.items)}`
-    currOrder.innerHTML = msg
-    historyLog(msg)
+    }:<br />`;
+    for (let i = 0; i < this.items.length; i++){
+      msg += `${this.items[i]["count"]} `;
+      msg += `${this.items[i]["itemname"]} chicken sandwich`;
+      if (this.items[i]["count"] > 1) msg += "es";
+      if (i < this.items.length - 1) msg += ",<br />";
+    }
+    currOrder.innerHTML = msg;
+    historyLog(msg);
   },
   checkForMissingItems() {
     let missingItems = []
@@ -112,9 +118,13 @@ const orderDetails = {
   },
   process() {
     /* WRITE YOUR CODE HERE - Then remove the console.log */
-    console.log(
-      `Bug #3: Write a METHOD that depletes the inventory by using the 'items' array in the orderDetails object.`
-    )
+    this.items.forEach(({ itemname, count }) => {
+      for (let [ingredient, amount] of Object.entries(
+        mealIngredients[itemname]
+      )) {
+        inventory[ingredient].qty -= amount * count;
+      }
+    })
   },
 }
 
@@ -125,9 +135,8 @@ const orderDetails = {
 
 const restockAndDisplay = () => {
   /* WRITE YOUR CODE HERE - Then remove the console.log */
-  console.log(
-    "Bug #2: Invoke the inventory object METHOD that restocks according to prescribed supply levels for each ingredient. Be sure to include the required (object) argument."
-  )
+  inventory.restock(resupplyLevels)
+
   inventory.show()
   historyLog(
     `Restocked at ${new Date().toLocaleString("en-US", {
@@ -167,12 +176,28 @@ const formSubmit = (event) => {
   const missingItems = orderDetails.checkForMissingItems()
   if (missingItems.length) {
     historyLog(`Order #${orderDetails.orderNum} was canceled`)
-    alert(
-      `OOPS! We're missing the following ingredient(s): ${JSON.stringify(
-        missingItems
-      )}`
-    )
-    return false
+    let msg = "OOPS! We're missing the following ingredient(s): \n";
+    for (let i = 0; i < missingItems.length; i++){
+      msg += `For the ${missingItems[i]["itemname"]} chicken sandwich: `;
+      msg += `missing ${missingItems[i]["shortage"]} `;
+      if (missingItems[i]["unit"] !== "patty" && missingItems[i]["unit"] !== "bun"){
+        msg += `${missingItems[i]["unit"]}`;
+        if (missingItems[i]["shortage"] > 1) msg += "s";
+        msg += ` of ${missingItems[i]["ingredient"]}`;
+      }
+      else{
+        if (missingItems[i]["unit"] === "patty"){
+          msg += (missingItems[i]["shortage"] > 1) ? "patties" : "patty";
+        }
+        else{
+          msg += "bun";
+          if (missingItems[i]["shortage"] > 1) msg += "s";
+        }
+      }
+      if (i < missingItems.length - 1) msg += ",\n";
+    }
+    alert(msg);
+    return false;
   }
   orderDetails.process()
   orderDetails.show()
@@ -191,8 +216,7 @@ myForm.addEventListener("submit", formSubmit)
 
 document.addEventListener("DOMContentLoaded", () => {
   /* WRITE YOUR CODE HERE - Then remove the console.log */
-  console.log(
-    `Bug #1: Call the STANDALONE function that kicks off restocking and displaying of inventory.`
-  )
+  restockAndDisplay();
+
   document.querySelector("#message").innerHTML = ""
 })
